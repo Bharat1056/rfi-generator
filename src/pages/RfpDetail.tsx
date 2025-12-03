@@ -89,6 +89,7 @@ export default function RfpDetail() {
                   <TableHead>Vendor</TableHead>
                   <TableHead>Total Price</TableHead>
                   <TableHead>Delivery Days</TableHead>
+                  <TableHead>Payment Terms</TableHead>
                   <TableHead>Warranty</TableHead>
                   <TableHead>Received At</TableHead>
                 </TableRow>
@@ -99,6 +100,7 @@ export default function RfpDetail() {
                     <TableCell>{p.vendor.name}</TableCell>
                     <TableCell>{p.totalPrice ? `$${p.totalPrice}` : 'N/A'}</TableCell>
                     <TableCell>{p.parsedData.deliveryDays || 'N/A'}</TableCell>
+                    <TableCell>{p.parsedData.paymentTerms || 'N/A'}</TableCell>
                     <TableCell>{p.parsedData.warranty || 'N/A'}</TableCell>
                     <TableCell>{new Date(p.createdAt).toLocaleString()}</TableCell>
                   </TableRow>

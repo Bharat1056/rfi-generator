@@ -10,7 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useNavigate } from 'react-router-dom';
 
-const API_URL = 'http://localhost:4000/api';
+const API_URL = 'http://localhost:3000/api';
 
 export default function Home() {
   const navigate = useNavigate();
