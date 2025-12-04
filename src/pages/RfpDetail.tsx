@@ -94,7 +94,7 @@ export default function RfpDetail() {
   if (!rfp) return <div>RFP not found</div>;
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto pb-20 animate-fade-in-up">
+    <div className="space-y-6 max-w-5xl mx-auto pb-20">
       <div className="flex items-center justify-between">
         <Link to="/rfps">
           <Button variant="ghost" className="pl-0 hover:pl-2 transition-all gap-2 text-muted-foreground hover:text-foreground">
@@ -103,7 +103,7 @@ export default function RfpDetail() {
         </Link>
         <Dialog open={isSendDialogOpen} onOpenChange={setIsSendDialogOpen}>
           <DialogTrigger asChild>
-            <Button variant="gradient" className="gap-2 shadow-lg hover:shadow-primary/25">
+            <Button className="gap-2">
               <Send className="h-4 w-4" /> Send to Vendors
             </Button>
           </DialogTrigger>
@@ -155,7 +155,7 @@ export default function RfpDetail() {
           </div>
         </div>
 
-        <Card className="glass-card">
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5 text-primary" /> Description
@@ -169,7 +169,7 @@ export default function RfpDetail() {
         </Card>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="glass-card bg-muted/30">
+          <Card className="bg-muted/30">
             <CardContent className="pt-6">
               <div className="flex items-center gap-2 text-muted-foreground mb-1">
                 <DollarSign className="h-4 w-4" /> Budget
@@ -179,7 +179,7 @@ export default function RfpDetail() {
               </div>
             </CardContent>
           </Card>
-          <Card className="glass-card bg-muted/30">
+          <Card className="bg-muted/30">
             <CardContent className="pt-6">
               <div className="flex items-center gap-2 text-muted-foreground mb-1">
                 <Truck className="h-4 w-4" /> Delivery
@@ -189,7 +189,7 @@ export default function RfpDetail() {
               </div>
             </CardContent>
           </Card>
-          <Card className="glass-card bg-muted/30">
+          <Card className="bg-muted/30">
             <CardContent className="pt-6">
               <div className="flex items-center gap-2 text-muted-foreground mb-1">
                 <CreditCard className="h-4 w-4" /> Payment
@@ -199,7 +199,7 @@ export default function RfpDetail() {
               </div>
             </CardContent>
           </Card>
-          <Card className="glass-card bg-muted/30">
+          <Card className="bg-muted/30">
             <CardContent className="pt-6">
               <div className="flex items-center gap-2 text-muted-foreground mb-1">
                 <ShieldCheck className="h-4 w-4" /> Warranty
@@ -211,7 +211,7 @@ export default function RfpDetail() {
           </Card>
         </div>
 
-        <Card className="glass-card">
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Package className="h-5 w-5 text-primary" /> Line Items
@@ -241,7 +241,7 @@ export default function RfpDetail() {
           </CardContent>
         </Card>
 
-        <Card className="glass-card">
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <User className="h-5 w-5 text-primary" /> Vendor Proposals

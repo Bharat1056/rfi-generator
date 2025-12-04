@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import axiosInstance from '@/lib/axios';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,19 +14,23 @@ export default function Vendors() {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+  const fetchRef = useRef(false)
 
   useEffect(() => {
     fetchVendors();
   }, []);
 
   const fetchVendors = async () => {
+    if(fetchRef.current) return
     try {
+      fetchRef.current = true
       const res = await axiosInstance.get('/vendor/vendors');
       setVendors(res.data);
     } catch (error) {
       console.error(error);
     } finally {
       setLoading(false);
+      fetchRef.current = false
     }
   };
 
@@ -115,7 +119,7 @@ export default function Vendors() {
             <div key={i} className="h-40 rounded-lg bg-muted animate-pulse" />
           ))}
         </div>
-      ) : filteredVendors.length === 0 ? (
+      ) : (filteredVendors.length === 0 && !loading) ? (
         <Card className="border-dashed border-2 flex flex-col items-center justify-center p-12 text-center bg-muted/5">
           <div className="bg-primary/10 p-4 rounded-full mb-4">
             <Users className="h-8 w-8 text-primary" />

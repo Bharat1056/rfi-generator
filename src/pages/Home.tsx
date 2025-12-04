@@ -101,7 +101,7 @@ export default function Home() {
         </p>
       </div>
 
-      <Card className="glass-card border-t-4 border-t-primary overflow-hidden">
+      <Card className="border-t-4 border-t-primary overflow-hidden shadow-sm">
         <CardContent className="space-y-6 pt-8">
           <div className="relative">
             <Textarea
@@ -109,7 +109,7 @@ export default function Home() {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={6}
-              className="resize-none text-base p-6 shadow-inner bg-background/50 focus:bg-background transition-all"
+              className="resize-none text-base p-6 shadow-inner bg-muted/30 focus:bg-background transition-all"
             />
             <div className="absolute bottom-4 right-4 text-xs text-muted-foreground">
               {description.length} chars
@@ -120,9 +120,8 @@ export default function Home() {
             <Button
               onClick={handleGenerate}
               disabled={loading || !description}
-              variant="gradient"
               size="lg"
-              className="w-full sm:w-auto min-w-[200px] text-lg h-12 "
+              className="w-full sm:w-auto min-w-[200px] text-lg h-12"
             >
               {loading ? (
                 <>
@@ -142,7 +141,7 @@ export default function Home() {
 
       {generatedRfp && (
         <div className="mt-8">
-          <Card className="glass-card overflow-hidden">
+          <Card className="overflow-hidden shadow-sm">
             <CardHeader className="border-b border-border bg-muted/20">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>

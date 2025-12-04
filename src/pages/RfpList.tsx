@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import axiosInstance from '@/lib/axios';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -9,21 +9,25 @@ import { Badge } from '@/components/ui/badge';
 export default function RfpList() {
   const [rfps, setRfps] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const fetchRef = useRef(false)
 
   useEffect(() => {
+    const fetchRfps = async () => {
+      if(fetchRef.current) return
+      try {
+        fetchRef.current = true
+        const res = await axiosInstance.get('/rfp/rfps');
+        setRfps(res.data);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+        fetchRef.current = false
+      }
+    };
     fetchRfps();
   }, []);
 
-  const fetchRfps = async () => {
-    try {
-      const res = await axiosInstance.get('/rfp/rfps');
-      setRfps(res.data);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
@@ -45,7 +49,7 @@ export default function RfpList() {
             <div key={i} className="h-48 rounded-lg bg-muted animate-pulse" />
           ))}
         </div>
-      ) : rfps.length === 0 ? (
+      ) : (rfps.length === 0 && !loading) ? (
         <Card className="border-dashed border-2 flex flex-col items-center justify-center p-12 text-center bg-muted/5">
           <div className="bg-primary/10 p-4 rounded-full mb-4">
             <FileText className="h-8 w-8 text-primary" />
