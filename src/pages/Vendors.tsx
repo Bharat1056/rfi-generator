@@ -49,15 +49,15 @@ export default function Vendors() {
   );
 
   return (
-    <div className="space-y-8 max-w-6xl mx-auto">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fade-in-up">
+    <div className="space-y-6 max-w-6xl mx-auto">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Vendor Management</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">Vendor Management</h1>
           <p className="text-muted-foreground mt-1">Manage your supplier database and contacts.</p>
         </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
-            <Button variant="gradient" className="gap-2 shadow-lg hover:shadow-primary/25">
+            <Button className="gap-2">
               <Plus className="h-4 w-4" /> Add Vendor
             </Button>
           </DialogTrigger>
@@ -103,7 +103,7 @@ export default function Vendors() {
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           placeholder="Search vendors..."
-          className="pl-10 max-w-md bg-background/50"
+          className="pl-10 max-w-md"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
@@ -112,11 +112,11 @@ export default function Vendors() {
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-40 rounded-xl bg-muted/20 animate-pulse" />
+            <div key={i} className="h-40 rounded-lg bg-muted animate-pulse" />
           ))}
         </div>
       ) : filteredVendors.length === 0 ? (
-        <Card className="glass-card border-dashed border-2 flex flex-col items-center justify-center p-12 text-center">
+        <Card className="border-dashed border-2 flex flex-col items-center justify-center p-12 text-center bg-muted/5">
           <div className="bg-primary/10 p-4 rounded-full mb-4">
             <Users className="h-8 w-8 text-primary" />
           </div>
@@ -130,12 +130,8 @@ export default function Vendors() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredVendors.map((vendor, index) => (
-            <Card
-              key={vendor.id}
-              className="glass-card hover:border-primary/50 transition-all duration-300 group"
-              style={{ animationDelay: `${index * 0.05}s` }}
-            >
+          {filteredVendors.map((vendor) => (
+            <Card key={vendor.id} className="hover:shadow-md transition-shadow">
               <CardHeader className="pb-3">
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-3">
@@ -153,7 +149,7 @@ export default function Vendors() {
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2 mt-2">
-                  <Badge variant="secondary" className="bg-secondary/50 hover:bg-secondary">
+                  <Badge variant="secondary">
                     <Tag className="h-3 w-3 mr-1" />
                     {vendor.category}
                   </Badge>

@@ -32,83 +32,72 @@
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
-
-  --animate-accordion-down: accordion-down 0.2s ease-out;
-  --animate-accordion-up: accordion-up 0.2s ease-out;
-
-  @keyframes accordion-down {
-    from { height: 0; }
-    to { height: var(--radix-accordion-content-height); }
-  }
-  @keyframes accordion-up {
-    from { height: var(--radix-accordion-content-height); }
-    to { height: 0; }
-  }
 }
 
 @layer base {
   :root {
-    /* Light Theme with Green Tint */
-    --background: 0 0% 100%; /* Pure White */
-    --foreground: 240 10% 3.9%; /* Dark Grey for text */
+    /* Industry Grade Light Theme - Clean, High Contrast, Professional */
+    --background: 210 40% 98%; /* Very light gray/blue tint for app background */
+    --foreground: 222.2 84% 4.9%; /* Deep slate for text */
 
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --card: 0 0% 100%; /* Pure white cards */
+    --card-foreground: 222.2 84% 4.9%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
+    --popover-foreground: 222.2 84% 4.9%;
 
-    /* Professional Green (Emerald/Teal mix) */
-    --primary: 142 71% 45%; /* #22c55e - Green 500 */
-    --primary-foreground: 355.7 100% 97.3%;
+    /* Enterprise Blue - Trustworthy and Standard */
+    --primary: 221.2 83.2% 53.3%; /* Blue 600 */
+    --primary-foreground: 210 40% 98%;
 
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
+    --secondary: 210 40% 96.1%; /* Slate 100 */
+    --secondary-foreground: 222.2 47.4% 11.2%;
 
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive-foreground: 210 40% 98%;
 
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 142 71% 45%;
+    --border: 214.3 31.8% 91.4%; /* Slate 200 */
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
 
-    --radius: 0.5rem; /* Classic rounded corners, not too large */
+    --radius: 0.375rem; /* 6px - Standard, crisp radius */
   }
 
   .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
+    /* Dark mode kept functional but standard */
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
 
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
 
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
 
-    --primary: 142 71% 45%;
-    --primary-foreground: 355.7 100% 97.3%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
 
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
 
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
 
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
 
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive-foreground: 210 40% 98%;
 
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 142 71% 45%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
   }
 }
 
@@ -117,55 +106,25 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground font-sans antialiased selection:bg-primary/20 selection:text-primary;
-    /* White to Green Gradient Background */
-    background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
-    min-height: 100vh;
+    @apply bg-background text-foreground font-sans antialiased;
+    /* Removed gradients for a solid, clean background */
   }
 }
 
 @layer utilities {
-  /* Classic Card - Clean white with subtle shadow */
+  /* Industry Standard Card */
   .glass-card {
-    @apply bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 rounded-lg;
+    @apply bg-card border border-border shadow-sm rounded-lg;
+    /* Removed backdrop blur and hover lifts for stability */
   }
 
-  /* Retain glass class for specific overlays if needed, but make it cleaner */
+  /* Simple clean utility for glass if absolutely needed, but toned down */
   .glass {
-    @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-sm;
+    @apply bg-white/90 border border-border shadow-sm;
   }
 
-  /* Professional Green Gradient Text */
+  /* Solid text, no gradients */
   .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-green-600 to-emerald-800;
+    @apply text-primary font-semibold;
   }
-
-  /* Classic Button overrides if needed, though shadcn button variants usually handle this.
-     We can enforce a more 'classic' feel here if the component uses these classes. */
-}
-
-/* Animations */
-@keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-5px); }
-  100% { transform: translateY(0px); }
-}
-
-.animate-float {
-  animation: float 6s ease-in-out infinite;
-}
-
-@keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fade-in-up {
-  animation: fade-in-up 0.4s ease-out forwards;
 }

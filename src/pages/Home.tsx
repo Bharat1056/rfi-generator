@@ -92,9 +92,9 @@ export default function Home() {
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto pb-20">
-      <div className="text-center space-y-4 mb-12 animate-fade-in-up">
-        <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight lg:text-6xl">
-          Create <span className="text-gradient">Intelligent</span> RFPs
+      <div className="text-center space-y-4 mb-12">
+        <h1 className="text-4xl font-bold tracking-tight text-foreground">
+          Create Intelligent RFPs
         </h1>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
           Describe your procurement needs in natural language and let AI generate a structured Request for Proposal in seconds.
@@ -141,7 +141,7 @@ export default function Home() {
       </Card>
 
       {generatedRfp && (
-        <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+        <div className="mt-8">
           <Card className="glass-card overflow-hidden">
             <CardHeader className="border-b border-border bg-muted/20">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">

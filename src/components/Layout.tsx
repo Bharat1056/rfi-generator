@@ -16,23 +16,20 @@ const Layout: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background font-sans antialiased relative overflow-hidden">
-      {/* Background Mesh Gradient */}
-      <div className="fixed inset-0 z-0 pointer-events-none bg-gradient-mesh opacity-40" />
-
-      <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-background/60 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <Link to="/" className="flex items-center space-x-2 group">
-            <div className="bg-primary/10 p-2 rounded-lg group-hover:bg-primary/20 transition-colors">
-              <LayoutDashboard className="h-5 w-5 text-primary" />
+    <div className="min-h-screen bg-background font-sans antialiased flex flex-col">
+      <header className="sticky top-0 z-50 w-full border-b border-border bg-card shadow-sm">
+        <div className="container mx-auto px-6 h-16 flex items-center justify-between">
+          <Link to="/" className="flex items-center space-x-3 group">
+            <div className="bg-primary p-2 rounded-md transition-colors">
+              <LayoutDashboard className="h-5 w-5 text-primary-foreground" />
             </div>
-            <span className="font-bold text-xl tracking-tight text-gradient">
+            <span className="font-bold text-xl tracking-tight text-foreground">
               AI RFP Manager
             </span>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-1">
+          <nav className="hidden md:flex items-center space-x-6">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
@@ -41,10 +38,10 @@ const Layout: React.FC = () => {
                   key={item.path}
                   to={item.path}
                   className={cn(
-                    "flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200",
+                    "flex items-center space-x-2 text-sm font-medium transition-colors hover:text-primary",
                     isActive
-                      ? "bg-primary/10 text-primary shadow-sm"
-                      : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+                      ? "text-primary"
+                      : "text-muted-foreground"
                   )}
                 >
                   <Icon className="h-4 w-4" />
@@ -63,7 +60,7 @@ const Layout: React.FC = () => {
                   <span className="sr-only">Toggle menu</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[300px] sm:w-[400px] border-l border-white/10 bg-background/95 backdrop-blur-xl">
+              <SheetContent side="right" className="w-[300px] border-l border-border bg-background">
                 <nav className="flex flex-col gap-4 mt-8">
                   {navItems.map((item) => {
                     const Icon = item.icon;
@@ -74,10 +71,10 @@ const Layout: React.FC = () => {
                         to={item.path}
                         onClick={() => setIsOpen(false)}
                         className={cn(
-                          "flex items-center space-x-4 px-4 py-3 rounded-xl text-base font-medium transition-all",
+                          "flex items-center space-x-4 px-4 py-3 rounded-md text-base font-medium transition-all hover:bg-muted",
                           isActive
                             ? "bg-primary/10 text-primary"
-                            : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+                            : "text-muted-foreground"
                         )}
                       >
                         <Icon className="h-5 w-5" />
@@ -92,7 +89,7 @@ const Layout: React.FC = () => {
         </div>
       </header>
 
-      <main className="container mx-auto py-8 px-4 relative z-10 animate-fade-in-up">
+      <main className="flex-1 container mx-auto py-8 px-6">
         <Outlet />
       </main>
     </div>

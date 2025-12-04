@@ -26,14 +26,14 @@ export default function RfpList() {
   };
 
   return (
-    <div className="space-y-8 max-w-6xl mx-auto">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fade-in-up">
+    <div className="space-y-6 max-w-6xl mx-auto">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">All RFPs</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">All RFPs</h1>
           <p className="text-muted-foreground mt-1">Manage and track your request for proposals.</p>
         </div>
         <Link to="/">
-          <Button variant="gradient" className="gap-2 shadow-lg hover:shadow-primary/25">
+          <Button className="gap-2">
             <Plus className="h-4 w-4" /> Create New RFP
           </Button>
         </Link>
@@ -42,11 +42,11 @@ export default function RfpList() {
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-48 rounded-xl bg-muted/20 animate-pulse" />
+            <div key={i} className="h-48 rounded-lg bg-muted animate-pulse" />
           ))}
         </div>
       ) : rfps.length === 0 ? (
-        <Card className="glass-card border-dashed border-2 flex flex-col items-center justify-center p-12 text-center">
+        <Card className="border-dashed border-2 flex flex-col items-center justify-center p-12 text-center bg-muted/5">
           <div className="bg-primary/10 p-4 rounded-full mb-4">
             <FileText className="h-8 w-8 text-primary" />
           </div>
@@ -60,20 +60,14 @@ export default function RfpList() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {rfps.map((rfp, index) => (
-            <Card
-              key={rfp.id}
-              className="glass-card flex flex-col hover:border-primary/50 transition-all duration-300 group"
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
+          {rfps.map((rfp) => (
+            <Card key={rfp.id} className="flex flex-col hover:shadow-md transition-shadow">
               <CardHeader className="pb-4">
                 <div className="flex justify-between items-start gap-2">
-                  <CardTitle className="text-xl line-clamp-1 group-hover:text-primary transition-colors">
+                  <CardTitle className="text-xl line-clamp-1">
                     {rfp.title || 'Untitled RFP'}
                   </CardTitle>
-                  <Badge variant="secondary" className="bg-primary/10 text-primary hover:bg-primary/20">
-                    Active
-                  </Badge>
+                  <Badge variant="secondary">Active</Badge>
                 </div>
                 <CardDescription className="line-clamp-2 min-h-[2.5rem]">
                   {rfp.description}
@@ -93,9 +87,9 @@ export default function RfpList() {
               </CardContent>
               <CardFooter className="pt-0">
                 <Link to={`/rfps/${rfp.id}`} className="w-full">
-                  <Button variant="ghost" className="w-full justify-between group-hover:bg-primary/5">
+                  <Button variant="ghost" className="w-full justify-between">
                     View Details
-                    <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                    <ArrowRight className="h-4 w-4" />
                   </Button>
                 </Link>
               </CardFooter>
