@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import axiosInstance from '@/lib/axios';
 import { useParams, Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -9,8 +9,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { ArrowLeft, Calendar, DollarSign, Package, Truck, CreditCard, ShieldCheck, FileText, User, Send } from 'lucide-react';
-
-const API_URL = 'http://localhost:3000/api';
 
 export default function RfpDetail() {
   const { id } = useParams();
@@ -32,7 +30,7 @@ export default function RfpDetail() {
 
   const fetchRfp = async () => {
     try {
-      const res = await axios.get(`${API_URL}/rfps/${id}`);
+      const res = await axiosInstance.get(`/rfp/rfps/${id}`);
       setRfp(res.data);
     } catch (error) {
       console.error(error);
@@ -43,7 +41,7 @@ export default function RfpDetail() {
 
   const fetchProposals = async () => {
     try {
-      const res = await axios.get(`${API_URL}/rfps/${id}/proposals`);
+      const res = await axiosInstance.get(`/rfp/rfps/${id}/proposals`);
       setProposals(res.data);
     } catch (error) {
       console.error(error);
@@ -52,7 +50,7 @@ export default function RfpDetail() {
 
   const fetchVendors = async () => {
     try {
-      const res = await axios.get(`${API_URL}/vendors`);
+      const res = await axiosInstance.get('/vendor/vendors');
       setVendors(res.data);
     } catch (error) {
       console.error(error);
@@ -63,7 +61,7 @@ export default function RfpDetail() {
     if (selectedVendors.length === 0) return;
     setSending(true);
     try {
-      await axios.post(`${API_URL}/rfps/${id}/send`, { vendorIds: selectedVendors });
+      await axiosInstance.post(`/rfp/rfps/${id}/send`, { vendorIds: selectedVendors });
       setIsSendDialogOpen(false);
       setSelectedVendors([]);
       alert('RFP sent to selected vendors successfully!');

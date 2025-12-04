@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import axiosInstance from '@/lib/axios';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,8 +7,6 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Plus, Users, Mail, Tag, Search } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-
-const API_URL = 'http://localhost:3000/api';
 
 export default function Vendors() {
   const [vendors, setVendors] = useState<any[]>([]);
@@ -23,7 +21,7 @@ export default function Vendors() {
 
   const fetchVendors = async () => {
     try {
-      const res = await axios.get(`${API_URL}/vendors`);
+      const res = await axiosInstance.get('/vendor/vendors');
       setVendors(res.data);
     } catch (error) {
       console.error(error);
@@ -34,7 +32,7 @@ export default function Vendors() {
 
   const handleCreate = async () => {
     try {
-      await axios.post(`${API_URL}/vendors`, newVendor);
+      await axiosInstance.post('/vendor/vendors', newVendor);
       setIsOpen(false);
       setNewVendor({ name: '', email: '', category: '' });
       fetchVendors();

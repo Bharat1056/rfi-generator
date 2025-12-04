@@ -1,12 +1,10 @@
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import axiosInstance from '@/lib/axios';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { FileText, Calendar, DollarSign, ArrowRight, Plus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-
-const API_URL = 'http://localhost:3000/api';
 
 export default function RfpList() {
   const [rfps, setRfps] = useState<any[]>([]);
@@ -18,7 +16,7 @@ export default function RfpList() {
 
   const fetchRfps = async () => {
     try {
-      const res = await axios.get(`${API_URL}/rfps`);
+      const res = await axiosInstance.get('/rfp/rfps');
       setRfps(res.data);
     } catch (error) {
       console.error(error);

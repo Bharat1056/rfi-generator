@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import axios from 'axios';
+import axiosInstance from '@/lib/axios';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -10,8 +10,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useNavigate } from 'react-router-dom';
 import { Sparkles, Save, Send, Plus, Trash2, Loader2, FileText, DollarSign, Calendar, CreditCard, ShieldCheck } from 'lucide-react';
-
-const API_URL = 'http://localhost:3000/api';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -26,7 +24,7 @@ export default function Home() {
     if (!description) return;
     setLoading(true);
     try {
-      const res = await axios.post(`${API_URL}/rfps/generate`, { description });
+      const res = await axiosInstance.post('/rfp/rfps/generate', { description });
       setGeneratedRfp(res.data);
     } catch (error) {
       console.error(error);
@@ -39,7 +37,7 @@ export default function Home() {
   const handleSave = async () => {
     if (!generatedRfp) return;
     try {
-      const res = await axios.post(`${API_URL}/rfps`, generatedRfp);
+      const res = await axiosInstance.post('/rfp/rfps', generatedRfp);
       alert('RFP Saved!');
       // Update with ID so we can send it
       setGeneratedRfp(res.data);
@@ -51,7 +49,7 @@ export default function Home() {
 
   const fetchVendors = async () => {
     try {
-      const res = await axios.get(`${API_URL}/vendors`);
+      const res = await axiosInstance.get('/vendor/vendors');
       setVendors(res.data);
     } catch (error) {
       console.error(error);
@@ -64,7 +62,7 @@ export default function Home() {
       return;
     }
     try {
-      await axios.post(`${API_URL}/rfps/${generatedRfp.id}/send`, { vendorIds: selectedVendors });
+      await axiosInstance.post(`/rfp/rfps/${generatedRfp.id}/send`, { vendorIds: selectedVendors });
       alert('RFP sent to vendors!');
       setIsVendorModalOpen(false);
       navigate('/rfps');
