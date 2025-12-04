@@ -102,15 +102,6 @@ export default function Home() {
       </div>
 
       <Card className="glass-card border-t-4 border-t-primary overflow-hidden">
-        <CardHeader className="bg-primary/5 border-b border-primary/10 pb-8">
-          <CardTitle className="flex items-center gap-2 text-2xl">
-            <Sparkles className="h-6 w-6 text-primary" />
-            New Request
-          </CardTitle>
-          <CardDescription className="text-base">
-            Be specific about quantities, technical specs, and requirements.
-          </CardDescription>
-        </CardHeader>
         <CardContent className="space-y-6 pt-8">
           <div className="relative">
             <Textarea
@@ -125,13 +116,13 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="flex justify-end">
+          <div className="flex justify-end cursor-pointer">
             <Button
               onClick={handleGenerate}
               disabled={loading || !description}
               variant="gradient"
               size="lg"
-              className="w-full sm:w-auto min-w-[200px] text-lg h-12"
+              className="w-full sm:w-auto min-w-[200px] text-lg h-12 "
             >
               {loading ? (
                 <>
@@ -152,7 +143,7 @@ export default function Home() {
       {generatedRfp && (
         <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
           <Card className="glass-card overflow-hidden">
-            <CardHeader className="border-b border-white/5 bg-white/5">
+            <CardHeader className="border-b border-border bg-muted/20">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <CardTitle className="text-2xl">Review & Edit RFP</CardTitle>
@@ -286,7 +277,7 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 p-6 bg-muted/30 rounded-xl border border-white/5">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 p-6 bg-muted/30 rounded-xl border border-border">
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2 text-muted-foreground">
                     <DollarSign className="h-4 w-4" /> Budget

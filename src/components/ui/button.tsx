@@ -4,20 +4,20 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-95",
+  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-95 cursor-pointer",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90 hover:-translate-y-0.5 shadow-lg hover:shadow-primary/25",
+        default: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm hover:shadow-md transition-all",
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90 hover:-translate-y-0.5 shadow-lg hover:shadow-destructive/25",
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-sm hover:shadow-md transition-all",
         outline:
-          "border border-input bg-background hover:bg-accent hover:text-accent-foreground hover:-translate-y-0.5",
+          "border border-input bg-background hover:bg-accent hover:text-accent-foreground shadow-sm transition-all",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:-translate-y-0.5",
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-sm transition-all",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
-        gradient: "bg-gradient-to-r from-primary via-purple-500 to-cyan-500 text-white hover:opacity-90 hover:-translate-y-0.5 shadow-lg hover:shadow-purple-500/25 border-0",
+        gradient: "bg-gradient-to-r from-green-600 to-emerald-700 text-white hover:opacity-90 shadow-md hover:shadow-lg transition-all border-0",
       },
       size: {
         default: "h-10 px-4 py-2",
