@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { FileText, Calendar, DollarSign, ArrowRight, Plus } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
-const API_URL = 'http://localhost:4000/api';
+const API_URL = 'http://localhost:3000/api';
 
 export default function RfpList() {
   const [rfps, setRfps] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchRfps();
@@ -20,40 +22,89 @@ export default function RfpList() {
       setRfps(res.data);
     } catch (error) {
       console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>All RFPs</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Title</TableHead>
-              <TableHead>Created At</TableHead>
-              <TableHead>Budget</TableHead>
-              <TableHead>Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {rfps.map((rfp) => (
-              <TableRow key={rfp.id}>
-                <TableCell className="font-medium">{rfp.title}</TableCell>
-                <TableCell>{new Date(rfp.createdAt).toLocaleDateString()}</TableCell>
-                <TableCell>{rfp.budget ? `$${rfp.budget}` : 'N/A'}</TableCell>
-                <TableCell>
-                  <Link to={`/rfps/${rfp.id}`}>
-                    <Button variant="outline" size="sm">View Details</Button>
-                  </Link>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+    <div className="space-y-8 max-w-6xl mx-auto">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fade-in-up">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">All RFPs</h1>
+          <p className="text-muted-foreground mt-1">Manage and track your request for proposals.</p>
+        </div>
+        <Link to="/">
+          <Button variant="gradient" className="gap-2 shadow-lg hover:shadow-primary/25">
+            <Plus className="h-4 w-4" /> Create New RFP
+          </Button>
+        </Link>
+      </div>
+
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-48 rounded-xl bg-muted/20 animate-pulse" />
+          ))}
+        </div>
+      ) : rfps.length === 0 ? (
+        <Card className="glass-card border-dashed border-2 flex flex-col items-center justify-center p-12 text-center">
+          <div className="bg-primary/10 p-4 rounded-full mb-4">
+            <FileText className="h-8 w-8 text-primary" />
+          </div>
+          <h3 className="text-xl font-semibold">No RFPs found</h3>
+          <p className="text-muted-foreground mt-2 mb-6 max-w-sm">
+            You haven't created any Request for Proposals yet. Start by creating your first one.
+          </p>
+          <Link to="/">
+            <Button variant="outline">Create your first RFP</Button>
+          </Link>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {rfps.map((rfp, index) => (
+            <Card
+              key={rfp.id}
+              className="glass-card flex flex-col hover:border-primary/50 transition-all duration-300 group"
+              style={{ animationDelay: `${index * 0.1}s` }}
+            >
+              <CardHeader className="pb-4">
+                <div className="flex justify-between items-start gap-2">
+                  <CardTitle className="text-xl line-clamp-1 group-hover:text-primary transition-colors">
+                    {rfp.title || 'Untitled RFP'}
+                  </CardTitle>
+                  <Badge variant="secondary" className="bg-primary/10 text-primary hover:bg-primary/20">
+                    Active
+                  </Badge>
+                </div>
+                <CardDescription className="line-clamp-2 min-h-[2.5rem]">
+                  {rfp.description}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pb-4 flex-1">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Calendar className="h-4 w-4" />
+                    {new Date(rfp.createdAt).toLocaleDateString()}
+                  </div>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <DollarSign className="h-4 w-4" />
+                    {rfp.budget ? `$${rfp.budget.toLocaleString()}` : 'N/A'}
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter className="pt-0">
+                <Link to={`/rfps/${rfp.id}`} className="w-full">
+                  <Button variant="ghost" className="w-full justify-between group-hover:bg-primary/5">
+                    View Details
+                    <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
