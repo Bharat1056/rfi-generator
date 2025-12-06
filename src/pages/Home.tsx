@@ -140,7 +140,7 @@ export default function Home() {
   const addItem = () => {
     setGeneratedRfp({
       ...generatedRfp,
-      items: [...generatedRfp.items, { name: '', qty: 1, specs: '' }]
+      items: [...generatedRfp.items, { name: '', quantity: 1, specifications: '' }]
     });
   };
 
