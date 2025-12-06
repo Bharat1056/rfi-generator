@@ -9,37 +9,73 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, Save, Send, Plus, Trash2, Loader2, FileText, DollarSign, Calendar, CreditCard, ShieldCheck } from 'lucide-react';
+import { Sparkles, Save, Send, Plus, Trash2, FileText, DollarSign, Calendar, CreditCard, ShieldCheck } from 'lucide-react';
+import { RfpChatModal } from '@/components/RfpChatModal';
 
 export default function Home() {
   const navigate = useNavigate();
-  const [description, setDescription] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const [generatedRfp, setGeneratedRfp] = useState<any>(null);
   const [vendors, setVendors] = useState<any[]>([]);
   const [selectedVendors, setSelectedVendors] = useState<string[]>([]);
   const [isVendorModalOpen, setIsVendorModalOpen] = useState(false);
 
-  const handleGenerate = async () => {
-    if (!description) return;
-    setLoading(true);
-    try {
-      const res = await axiosInstance.post('/rfp/rfps/generate', { description });
-      setGeneratedRfp(res.data);
-    } catch (error) {
-      console.error(error);
-      alert('Failed to generate RFP');
-    } finally {
-      setLoading(false);
+  // Warranty composite state
+  const [warrantyYears, setWarrantyYears] = useState(0);
+  const [warrantyMonths, setWarrantyMonths] = useState(0);
+
+  // Date state for delivery
+  const [deliveryDate, setDeliveryDate] = useState<string>('');
+
+  const handleRfpGenerated = (data: any) => {
+    setGeneratedRfp(data);
+    // Parse warranty if possible
+    if (data.warranty) {
+        // simple heuristic parsing
+        const y = data.warranty.match(/(\d+)\s*ye?a?r?/i);
+        const m = data.warranty.match(/(\d+)\s*mo?n?t?h?/i);
+        if (y) setWarrantyYears(parseInt(y[1]));
+        if (m) setWarrantyMonths(parseInt(m[1]));
     }
+    // Parse Delivery Days to Date
+    if (data.deliveryDays) {
+        const date = new Date();
+        date.setDate(date.getDate() + data.deliveryDays);
+        setDeliveryDate(date.toISOString().split('T')[0]);
+    }
+  };
+
+  const updateWarranty = (y: number, m: number) => {
+      setWarrantyYears(y);
+      setWarrantyMonths(m);
+      let str = '';
+      if (y > 0) str += `${y} Year${y > 1 ? 's' : ''} `;
+      if (m > 0) str += `${m} Month${m > 1 ? 's' : ''}`;
+      setGeneratedRfp((prev: any) => ({ ...prev, warranty: str.trim() }));
+  };
+
+  const updateDeliveryDate = (dateStr: string) => {
+      setDeliveryDate(dateStr);
+      if (dateStr) {
+          const target = new Date(dateStr);
+          const today = new Date();
+          const diff = Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+          setGeneratedRfp((prev: any) => ({ ...prev, deliveryDays: diff > 0 ? diff : 0 }));
+      }
   };
 
   const handleSave = async () => {
     if (!generatedRfp) return;
+
+    // Strict Validation
+    if (!generatedRfp.title || !generatedRfp.items?.length || !generatedRfp.paymentTerms || !generatedRfp.warranty || !generatedRfp.deliveryDays) {
+        alert("Please fill in all mandatory fields (Title, Items, Payment Terms, Warranty, Delivery Date).");
+        return;
+    }
+
     try {
       const res = await axiosInstance.post('/rfp/rfps', generatedRfp);
       alert('RFP Saved!');
-      // Update with ID so we can send it
       setGeneratedRfp(res.data);
     } catch (error) {
       console.error(error);
@@ -59,9 +95,14 @@ export default function Home() {
   const handleSend = async () => {
     if (!generatedRfp) return;
 
+    // Strict Validation
+    if (!generatedRfp.title || !generatedRfp.items?.length || !generatedRfp.paymentTerms || !generatedRfp.warranty || !generatedRfp.deliveryDays) {
+        alert("Please fill in all mandatory fields before sending.");
+        return;
+    }
+
     let rfpId = generatedRfp.id;
 
-    // Auto-save if not saved yet
     if (!rfpId) {
       try {
         const res = await axiosInstance.post('/rfp/rfps', generatedRfp);
@@ -110,47 +151,32 @@ export default function Home() {
           Create Intelligent RFPs
         </h1>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          Describe your procurement needs in natural language and let AI generate a structured Request for Proposal in seconds.
+          Start a chat with our AI procurement assistant to generate a structured Request for Proposal in minutes.
         </p>
       </div>
 
-      <Card className="border-t-4 border-t-primary overflow-hidden shadow-sm">
-        <CardContent className="space-y-6 pt-8">
-          <div className="relative">
-            <Textarea
-              placeholder="E.g., I need 50 high-end laptops for developers with 32GB RAM, 1TB SSD, and M3 Pro chips. Budget is around $150k. Delivery needed within 30 days..."
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={6}
-              className="resize-none text-base p-6 shadow-inner bg-muted/30 focus:bg-background transition-all"
-            />
-            <div className="absolute bottom-4 right-4 text-xs text-muted-foreground">
-              {description.length} chars
-            </div>
-          </div>
+      {!generatedRfp && (
+        <Card className="border-t-4 border-t-primary overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer" onClick={() => setIsChatOpen(true)}>
+          <CardContent className="flex flex-col items-center justify-center py-20 space-y-6">
+             <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center">
+                <Sparkles className="h-10 w-10 text-primary" />
+             </div>
+             <div className="text-center space-y-2">
+                <h3 className="text-2xl font-semibold">Start AI Assistant</h3>
+                <p className="text-muted-foreground max-w-md">Click to open the chat interface. The AI will guide you through defining your requirements.</p>
+             </div>
+             <Button size="lg" className="rounded-full px-8 text-lg h-12">
+                Start Chat
+             </Button>
+          </CardContent>
+        </Card>
+      )}
 
-          <div className="flex justify-end cursor-pointer">
-            <Button
-              onClick={handleGenerate}
-              disabled={loading || !description}
-              size="lg"
-              className="w-full sm:w-auto min-w-[200px] text-lg h-12"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Generating...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="mr-2 h-5 w-5" />
-                  Generate Structured RFP
-                </>
-              )}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <RfpChatModal
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        onGenerate={handleRfpGenerated}
+      />
 
       {generatedRfp && (
         <div className="mt-8">
@@ -212,7 +238,7 @@ export default function Home() {
               <div className="grid gap-6 md:grid-cols-2">
                 <div className="space-y-2 md:col-span-2">
                   <Label className="text-base font-semibold flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-primary" /> Title
+                    <FileText className="h-4 w-4 text-primary" /> Title <span className="text-destructive">*</span>
                   </Label>
                   <Input
                     value={generatedRfp.title}
@@ -232,7 +258,7 @@ export default function Home() {
 
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <Label className="text-lg font-semibold">Line Items</Label>
+                  <Label className="text-lg font-semibold">Line Items <span className="text-destructive">*</span></Label>
                   <Button variant="outline" size="sm" onClick={addItem} className="gap-2">
                     <Plus className="h-4 w-4" /> Add Item
                   </Button>
@@ -303,34 +329,59 @@ export default function Home() {
                 </div>
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2 text-muted-foreground">
-                    <Calendar className="h-4 w-4" /> Delivery Days
+                    <Calendar className="h-4 w-4" /> Delivery Date <span className="text-destructive">*</span>
                   </Label>
                   <Input
-                    type="number"
-                    value={generatedRfp.deliveryDays || ''}
-                    onChange={(e) => setGeneratedRfp({...generatedRfp, deliveryDays: parseInt(e.target.value)})}
-                    placeholder="30"
+                    type="date"
+                    value={deliveryDate}
+                    onChange={(e) => updateDeliveryDate(e.target.value)}
                   />
+                  {generatedRfp.deliveryDays ? (
+                    <span className="text-xs text-muted-foreground">Approx. {generatedRfp.deliveryDays} days</span>
+                  ) : null}
                 </div>
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2 text-muted-foreground">
-                    <CreditCard className="h-4 w-4" /> Payment Terms
+                    <CreditCard className="h-4 w-4" /> Payment Terms <span className="text-destructive">*</span>
                   </Label>
-                  <Input
-                    value={generatedRfp.paymentTerms || ''}
-                    onChange={(e) => setGeneratedRfp({...generatedRfp, paymentTerms: e.target.value})}
-                    placeholder="Net 30"
-                  />
+                  <select
+                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                     value={generatedRfp.paymentTerms || ''}
+                     onChange={(e) => setGeneratedRfp({...generatedRfp, paymentTerms: e.target.value})}
+                  >
+                     <option value="">Select Terms</option>
+                     <option value="Net 15">Net 15</option>
+                     <option value="Net 30">Net 30</option>
+                     <option value="Net 60">Net 60</option>
+                     <option value="Due on Receipt">Due on Receipt</option>
+                     <option value="50% Upfront, 50% on Delivery">50% Upfront, 50% on Delivery</option>
+                  </select>
                 </div>
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2 text-muted-foreground">
-                    <ShieldCheck className="h-4 w-4" /> Warranty
+                    <ShieldCheck className="h-4 w-4" /> Warranty <span className="text-destructive">*</span>
                   </Label>
-                  <Input
-                    value={generatedRfp.warranty || ''}
-                    onChange={(e) => setGeneratedRfp({...generatedRfp, warranty: e.target.value})}
-                    placeholder="1 Year"
-                  />
+                  <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <Input
+                            type="number"
+                            min="0"
+                            value={warrantyYears}
+                            onChange={(e) => updateWarranty(parseInt(e.target.value), warrantyMonths)}
+                        />
+                        <span className="absolute right-3 top-2.5 text-xs text-muted-foreground">Yrs</span>
+                      </div>
+                      <div className="relative flex-1">
+                        <Input
+                            type="number"
+                            min="0"
+                            value={warrantyMonths}
+                            onChange={(e) => updateWarranty(warrantyYears, parseInt(e.target.value))}
+                        />
+                         <span className="absolute right-3 top-2.5 text-xs text-muted-foreground">Mos</span>
+                      </div>
+                  </div>
+                  <input type="hidden" value={generatedRfp.warranty || ''} />
                 </div>
               </div>
             </CardContent>
