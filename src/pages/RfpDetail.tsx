@@ -11,11 +11,24 @@ import { Label } from '@/components/ui/label';
 import { ArrowLeft, Calendar, DollarSign, Package, Truck, CreditCard, ShieldCheck, FileText, User, Send, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { useApi } from '@/hooks/useApi';
 import { cn } from '@/lib/utils';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { toast } from 'sonner';
 
 export default function RfpDetail() {
   const { id } = useParams();
   const [selectedVendors, setSelectedVendors] = useState<string[]>([]);
   const [isSendDialogOpen, setIsSendDialogOpen] = useState(false);
+  const [confirmationAction, setConfirmationAction] = useState<{ type: 'confirm' | 'reject', proposalId: string } | null>(null);
+
 
   // API Callbacks
   const fetchRfpApi = useCallback(async (rfpId: string) => {
@@ -73,10 +86,10 @@ export default function RfpDetail() {
       await sendRfp({ rfpId: id, vendorIds: selectedVendors });
       setIsSendDialogOpen(false);
       setSelectedVendors([]);
-      alert('RFP sent to selected vendors successfully!');
+      toast.success('RFP sent to selected vendors successfully!');
     } catch (error) {
       console.error(error);
-      alert('Failed to send RFP');
+      toast.error('Failed to send RFP');
     }
   };
 
@@ -88,27 +101,31 @@ export default function RfpDetail() {
     );
   };
 
-  const handleConfirm = async (proposalId: string) => {
-    if (!confirm('Are you sure you want to confirm this proposal? This will close the RFP.') || !id) return;
-    try {
-        await confirmProposal({ rfpId: id, proposalId });
-        fetchRfp(id);
-        fetchProposals(id);
-    } catch (err) {
-        console.error("Failed to confirm", err);
-        alert("Failed to confirm proposal");
-    }
+  const handleActionClick = (type: 'confirm' | 'reject', proposalId: string) => {
+      setConfirmationAction({ type, proposalId });
   }
 
-  const handleReject = async (proposalId: string) => {
-    if (!confirm('Are you sure you want to reject this proposal?') || !id) return;
-    try {
-        await rejectProposal({ rfpId: id, proposalId });
-        fetchProposals(id);
-    } catch (err) {
-        console.error("Failed to reject", err);
-        alert("Failed to reject proposal");
-    }
+  const executeAction = async () => {
+      if (!confirmationAction || !id) return;
+
+      const { type, proposalId } = confirmationAction;
+
+      try {
+          if (type === 'confirm') {
+              await confirmProposal({ rfpId: id, proposalId });
+              toast.success('Proposal confirmed successfully. RFP is now Closed.');
+              fetchRfp(id); // Status changes
+          } else {
+              await rejectProposal({ rfpId: id, proposalId });
+              toast.success('Proposal rejected.');
+          }
+          fetchProposals(id);
+      } catch (err) {
+          console.error(`Failed to ${type}`, err);
+          toast.error(`Failed to ${type} proposal`);
+      } finally {
+          setConfirmationAction(null);
+      }
   }
 
   if (rfpLoading) {
@@ -383,10 +400,10 @@ export default function RfpDetail() {
                             <TableCell className="text-right">
                                 {p.status === 'Pending' && (
                                     <div className="flex justify-end gap-2">
-                                        <Button size="icon" variant="outline" className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200" onClick={() => handleReject(p.id)} title="Reject">
+                                        <Button size="icon" variant="outline" className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200" onClick={() => handleActionClick('reject', p.id)} title="Reject">
                                             <XCircle className="h-4 w-4" />
                                         </Button>
-                                        <Button size="icon" className="h-8 w-8 bg-green-600 hover:bg-green-700 text-white shadow-sm" onClick={() => handleConfirm(p.id)} title="Confirm & Close RFP">
+                                        <Button size="icon" className="h-8 w-8 bg-green-600 hover:bg-green-700 text-white shadow-sm" onClick={() => handleActionClick('confirm', p.id)} title="Confirm & Close RFP">
                                             <CheckCircle className="h-4 w-4" />
                                         </Button>
                                     </div>
@@ -402,6 +419,31 @@ export default function RfpDetail() {
           </CardContent>
         </Card>
       </div>
+
+      <AlertDialog open={!!confirmationAction} onOpenChange={() => setConfirmationAction(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+                {confirmationAction?.type === 'confirm' ? 'Confirm Proposal' : 'Reject Proposal'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+                {confirmationAction?.type === 'confirm'
+                    ? "Are you sure you want to confirm this proposal? This action will formally accept the quote and mark the RFP as Closed. Other proposals will be set to Rejected."
+                    : "Are you sure you want to reject this proposal? This status will be updated for the vendor."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+                onClick={executeAction}
+                className={confirmationAction?.type === 'confirm' ? "bg-green-600 hover:bg-green-700" : "bg-destructive hover:bg-destructive/90"}
+            >
+              {confirmationAction?.type === 'confirm' ? 'Confirm & Close RFP' : 'Reject Proposal'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
     </div>
   );
 }
