@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -108,7 +109,7 @@ export function RfpChatModal({ isOpen, onClose, onGenerate }: RfpChatModalProps)
       } catch (error) {
         console.error(error);
         // Error handling is managed by the hook somewhat, but we can alert specific msg
-        alert("Failed to generate RFP");
+        toast.error("Failed to generate RFP");
       }
   }
 

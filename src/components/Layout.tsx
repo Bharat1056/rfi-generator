@@ -4,6 +4,7 @@ import { Menu, Sparkles, LayoutDashboard, Users, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
+import { Toaster } from '@/components/ui/sonner';
 
 const Layout: React.FC = () => {
   const location = useLocation();
@@ -92,6 +93,7 @@ const Layout: React.FC = () => {
       <main className="flex-1 container mx-auto py-8 px-6">
         <Outlet />
       </main>
+      <Toaster />
     </div>
   );
 };

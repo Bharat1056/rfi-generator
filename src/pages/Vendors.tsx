@@ -5,14 +5,26 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Users, Mail, Tag, Search, Loader2 } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { Plus, Users, Mail, Tag, Search, Loader2, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useApi } from '@/hooks/useApi';
+import { toast } from 'sonner';
 
 export default function Vendors() {
   const [newVendor, setNewVendor] = useState({ name: '', email: '', category: '' });
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [vendorToDelete, setVendorToDelete] = useState<string | null>(null);
 
   // API Callbacks
   const fetchVendorsApi = useCallback(async () => {
@@ -24,9 +36,14 @@ export default function Vendors() {
     await axiosInstance.post('/vendor/vendors', vendorData);
   }, []);
 
+  const deleteVendorApi = useCallback(async (id: string) => {
+    await axiosInstance.delete(`/vendor/vendors/${id}`);
+  }, []);
+
   // Hooks
   const { data: vendors, loading, execute: fetchVendors } = useApi(fetchVendorsApi);
   const { loading: creating, execute: createVendor } = useApi(createVendorApi);
+  const { execute: deleteVendorExec } = useApi(deleteVendorApi);
 
   useEffect(() => {
     fetchVendors();
@@ -38,11 +55,26 @@ export default function Vendors() {
       setIsOpen(false);
       setNewVendor({ name: '', email: '', category: '' });
       fetchVendors();
+      toast.success('Vendor created successfully');
     } catch (error) {
       console.error(error);
-      alert('Failed to create vendor');
+      toast.error('Failed to create vendor');
     }
   };
+
+  const confirmDelete = async () => {
+    if (!vendorToDelete) return;
+
+    try {
+      await deleteVendorExec(vendorToDelete);
+      setVendorToDelete(null);
+      fetchVendors();
+      toast.success('Vendor deleted successfully');
+    } catch (error) {
+      console.error("Failed to delete vendor", error);
+      toast.error('Failed to delete vendor');
+    }
+  }
 
   const filteredVendors = vendors?.filter((v: any) =>
     v.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -136,7 +168,7 @@ export default function Vendors() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredVendors.map((vendor: any) => (
-            <Card key={vendor.id} className="hover:shadow-md transition-shadow group">
+            <Card key={vendor.id} className="hover:shadow-md transition-shadow group relative">
               <CardHeader className="pb-3">
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-3">
@@ -150,6 +182,9 @@ export default function Vendors() {
                       </CardDescription>
                     </div>
                   </div>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => setVendorToDelete(vendor.id)}>
+                      <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
               </CardHeader>
               <CardContent>
@@ -164,6 +199,24 @@ export default function Vendors() {
           ))}
         </div>
       )}
+
+      <AlertDialog open={!!vendorToDelete} onOpenChange={() => setVendorToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the vendor
+              and remove their data from our servers.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -3,24 +3,61 @@ import axiosInstance from '@/lib/axios';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileText, Calendar, DollarSign, ArrowRight, Plus } from 'lucide-react';
+import { FileText, Calendar, DollarSign, ArrowRight, Plus, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useApi } from '@/hooks/useApi';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+  } from "@/components/ui/alert-dialog"
+import { toast } from 'sonner';
 
 export default function RfpList() {
   const [status, setStatus] = useState('Pending');
+  const [rfpToDelete, setRfpToDelete] = useState<string | null>(null);
 
   const fetchRfpsApi = useCallback(async (currentStatus: string) => {
     const res = await axiosInstance.get(`/rfp/rfps?status=${currentStatus}`);
     return res.data;
   }, []);
 
+  const deleteRfpApi = useCallback(async (id: string) => {
+      await axiosInstance.delete(`/rfp/rfps/${id}`);
+  }, []);
+
   const { data: rfps, loading, error, execute: fetchRfps } = useApi(fetchRfpsApi);
+  const { execute: deleteRfpExec } = useApi(deleteRfpApi);
 
   useEffect(() => {
     fetchRfps(status);
   }, [status, fetchRfps]);
+
+  const confirmDelete = async () => {
+      if(!rfpToDelete) return;
+
+      try {
+          await deleteRfpExec(rfpToDelete);
+          setRfpToDelete(null);
+          fetchRfps(status);
+          toast.success('RFP deleted successfully');
+      } catch (error) {
+          console.error("Failed to delete RFP", error);
+          toast.error('Failed to delete RFP');
+      }
+  }
+
+  const handleDeleteClick = (e: React.MouseEvent, id: string) => {
+      e.preventDefault(); // Prevent navigating to details
+      e.stopPropagation();
+      setRfpToDelete(id);
+  }
 
 
   if(error) {
@@ -69,15 +106,25 @@ export default function RfpList() {
       return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {rfps.map((rfp: any) => (
-            <Card key={rfp.id} className="flex flex-col hover:shadow-md transition-shadow">
+            <Card key={rfp.id} className="flex flex-col hover:shadow-md transition-shadow group relative">
               <CardHeader className="pb-4">
                 <div className="flex justify-between items-start gap-2">
                   <CardTitle className="text-xl line-clamp-1">
                     {rfp.title || 'Untitled RFP'}
                   </CardTitle>
-                  <Badge variant={rfp.status === 'Closed' ? "secondary" : "default"}>
-                    {rfp.status || status}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge variant={rfp.status === 'Closed' ? "secondary" : "default"}>
+                        {rfp.status || status}
+                    </Badge>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                        onClick={(e) => handleDeleteClick(e, rfp.id)}
+                    >
+                        <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
                 <CardDescription className="line-clamp-2 min-h-[2.5rem]">
                   {rfp.description}
@@ -136,6 +183,24 @@ export default function RfpList() {
             {renderRfpList()}
           </TabsContent>
       </Tabs>
+
+      <AlertDialog open={!!rfpToDelete} onOpenChange={() => setRfpToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the RFP
+              and remove its data from our servers.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

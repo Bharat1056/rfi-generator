@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { toast } from 'sonner';
 import axiosInstance from '@/lib/axios';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -87,17 +88,17 @@ export default function Home() {
     if (!generatedRfp) return;
 
     if (!generatedRfp.title || !generatedRfp.items?.length || !generatedRfp.paymentTerms || !generatedRfp.warranty || !generatedRfp.deliveryDays) {
-        alert("Please fill in all mandatory fields (Title, Items, Payment Terms, Warranty, Delivery Date).");
+        toast.error("Please fill in all mandatory fields (Title, Items, Payment Terms, Warranty, Delivery Date).");
         return;
     }
 
     try {
       const savedRfp = await saveRfp(generatedRfp);
-      alert('RFP Saved!');
+      toast.success('RFP Saved!');
       setGeneratedRfp(savedRfp);
     } catch (error) {
       console.error(error);
-      alert('Failed to save RFP');
+      toast.error('Failed to save RFP');
     }
   };
 
@@ -110,7 +111,7 @@ export default function Home() {
     if (!generatedRfp) return;
 
     if (!generatedRfp.title || !generatedRfp.items?.length || !generatedRfp.paymentTerms || !generatedRfp.warranty || !generatedRfp.deliveryDays) {
-        alert("Please fill in all mandatory fields before sending.");
+        toast.error("Please fill in all mandatory fields before sending.");
         return;
     }
 
@@ -123,19 +124,19 @@ export default function Home() {
         setGeneratedRfp(savedRfp);
       } catch (error) {
         console.error(error);
-        alert('Failed to auto-save RFP. Please try again.');
+        toast.error('Failed to auto-save RFP. Please try again.');
         return;
       }
     }
 
     try {
       await sendRfp({ rfpId, vendorIds: selectedVendors });
-      alert('RFP sent to vendors!');
+      toast.success('RFP sent to vendors!');
       setIsVendorModalOpen(false);
       navigate('/rfps');
     } catch (error) {
       console.error(error);
-      alert('Failed to send RFP');
+      toast.error('Failed to send RFP');
     }
   };
 
