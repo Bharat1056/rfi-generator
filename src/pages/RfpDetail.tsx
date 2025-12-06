@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, Calendar, DollarSign, Package, Truck, CreditCard, ShieldCheck, FileText, User, Send } from 'lucide-react';
+import { ArrowLeft, Calendar, DollarSign, Package, Truck, CreditCard, ShieldCheck, FileText, User, Send, CheckCircle, XCircle } from 'lucide-react';
 
 export default function RfpDetail() {
   const { id } = useParams();
@@ -81,6 +81,30 @@ export default function RfpDetail() {
     );
   };
 
+  const handleConfirm = async (proposalId: string) => {
+    if (!confirm('Are you sure you want to confirm this proposal? This will close the RFP.')) return;
+    try {
+        await axiosInstance.post(`/rfp/rfps/${id}/proposals/${proposalId}/confirm`);
+        // Refresh data
+        fetchRfp();
+        fetchProposals();
+    } catch (err) {
+        console.error("Failed to confirm", err);
+        alert("Failed to confirm proposal");
+    }
+  }
+
+  const handleReject = async (proposalId: string) => {
+    if (!confirm('Are you sure you want to reject this proposal?')) return;
+    try {
+        await axiosInstance.post(`/rfp/rfps/${id}/proposals/${proposalId}/reject`);
+        fetchProposals();
+    } catch (err) {
+        console.error("Failed to reject", err);
+        alert("Failed to reject proposal");
+    }
+  }
+
   if (loading) {
     return (
       <div className="space-y-8 max-w-5xl mx-auto animate-pulse">
@@ -151,7 +175,9 @@ export default function RfpDetail() {
             <span className="flex items-center gap-1">
               <Calendar className="h-4 w-4" /> {new Date(rfp.createdAt).toLocaleDateString()}
             </span>
-            <Badge variant="secondary" className="bg-primary/10 text-primary">Active</Badge>
+            <Badge variant={rfp.status === 'Closed' ? "secondary" : "default"} className="bg-primary/10 text-primary">
+                {rfp.status || 'Active'}
+            </Badge>
           </div>
         </div>
 
@@ -261,26 +287,56 @@ export default function RfpDetail() {
                   <TableHeader className="bg-muted/50">
                     <TableRow>
                       <TableHead>Vendor</TableHead>
+                      <TableHead>AI Score</TableHead>
                       <TableHead>Total Price</TableHead>
                       <TableHead>Delivery</TableHead>
-                      <TableHead>Payment</TableHead>
-                      <TableHead>Warranty</TableHead>
-                      <TableHead>Received</TableHead>
+                      <TableHead>Analysis</TableHead>
+                      <TableHead>Status</TableHead>
+                      {rfp.status !== 'Closed' && <TableHead className="text-right">Actions</TableHead>}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {proposals.map((p) => (
-                      <TableRow key={p.id}>
-                        <TableCell className="font-medium">{p.vendor.name}</TableCell>
-                        <TableCell className="text-green-600 font-medium">
+                      <TableRow key={p.id} className={p.status === 'Accepted' ? 'bg-green-50/50' : ''}>
+                        <TableCell className="font-medium">
+                            <div className="flex flex-col">
+                                <span>{p.vendor.name}</span>
+                                <span className="text-xs text-muted-foreground">{new Date(p.createdAt).toLocaleDateString()}</span>
+                            </div>
+                        </TableCell>
+                        <TableCell>
+                            <div className="flex items-center gap-2">
+                                <Badge variant={p.score >= 80 ? "default" : p.score >= 50 ? "secondary" : "destructive"}>
+                                    {p.score || 0}/100
+                                </Badge>
+                            </div>
+                        </TableCell>
+                        <TableCell className="font-medium">
                           {p.totalPrice ? `$${p.totalPrice.toLocaleString()}` : 'N/A'}
                         </TableCell>
-                        <TableCell>{p.parsedData.deliveryDays || 'N/A'}</TableCell>
-                        <TableCell>{p.parsedData.paymentTerms || 'N/A'}</TableCell>
-                        <TableCell>{p.parsedData.warranty || 'N/A'}</TableCell>
-                        <TableCell className="text-muted-foreground text-sm">
-                          {new Date(p.createdAt).toLocaleDateString()}
+                        <TableCell>{p.parsedData.deliveryDays ? `${p.parsedData.deliveryDays} Days` : 'N/A'}</TableCell>
+                        <TableCell className="max-w-xs text-xs text-muted-foreground">
+                            {p.aiAnalysis || 'No analysis available'}
                         </TableCell>
+                        <TableCell>
+                            <Badge variant={p.status === 'Accepted' ? 'default' : p.status === 'Rejected' ? 'destructive' : 'outline'}>
+                                {p.status || 'Pending'}
+                            </Badge>
+                        </TableCell>
+                        {rfp.status !== 'Closed' && (
+                            <TableCell className="text-right">
+                                {p.status === 'Pending' && (
+                                    <div className="flex justify-end gap-2">
+                                        <Button size="sm" variant="outline" className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200" onClick={() => handleReject(p.id)} title="Reject">
+                                            <XCircle className="h-4 w-4" />
+                                        </Button>
+                                        <Button size="sm" className="h-8 w-8 p-0 bg-green-600 hover:bg-green-700 text-white" onClick={() => handleConfirm(p.id)} title="Confirm & Close RFP">
+                                            <CheckCircle className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                )}
+                            </TableCell>
+                        )}
                       </TableRow>
                     ))}
                   </TableBody>

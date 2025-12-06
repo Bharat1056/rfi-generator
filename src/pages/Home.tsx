@@ -57,12 +57,25 @@ export default function Home() {
   };
 
   const handleSend = async () => {
-    if (!generatedRfp?.id) {
-      alert('Please save the RFP first');
-      return;
+    if (!generatedRfp) return;
+
+    let rfpId = generatedRfp.id;
+
+    // Auto-save if not saved yet
+    if (!rfpId) {
+      try {
+        const res = await axiosInstance.post('/rfp/rfps', generatedRfp);
+        rfpId = res.data.id;
+        setGeneratedRfp(res.data);
+      } catch (error) {
+        console.error(error);
+        alert('Failed to auto-save RFP. Please try again.');
+        return;
+      }
     }
+
     try {
-      await axiosInstance.post(`/rfp/rfps/${generatedRfp.id}/send`, { vendorIds: selectedVendors });
+      await axiosInstance.post(`/rfp/rfps/${rfpId}/send`, { vendorIds: selectedVendors });
       alert('RFP sent to vendors!');
       setIsVendorModalOpen(false);
       navigate('/rfps');

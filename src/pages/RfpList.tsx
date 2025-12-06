@@ -5,64 +5,79 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from '@/components/ui/button';
 import { FileText, Calendar, DollarSign, ArrowRight, Plus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function RfpList() {
   const [rfps, setRfps] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [status, setStatus] = useState('Pending');
   const fetchRef = useRef(false)
 
   useEffect(() => {
     const fetchRfps = async () => {
       if(fetchRef.current) return
+      setLoading(true);
       try {
         fetchRef.current = true
-        const res = await axiosInstance.get('/rfp/rfps');
+        const res = await axiosInstance.get(`/rfp/rfps?status=${status}`);
         setRfps(res.data);
       } catch (error) {
         console.error(error);
+        setError(true)
       } finally {
         setLoading(false);
         fetchRef.current = false
       }
     };
     fetchRfps();
-  }, []);
+  }, [status]);
 
 
-  return (
-    <div className="space-y-6 max-w-6xl mx-auto">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">All RFPs</h1>
-          <p className="text-muted-foreground mt-1">Manage and track your request for proposals.</p>
+  if(error) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-foreground">Something went wrong</h1>
+          <p className="mt-2 text-muted-foreground">Please try again later.</p>
         </div>
-        <Link to="/">
-          <Button className="gap-2">
-            <Plus className="h-4 w-4" /> Create New RFP
-          </Button>
-        </Link>
       </div>
+    )
+  }
 
-      {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-48 rounded-lg bg-muted animate-pulse" />
-          ))}
-        </div>
-      ) : (rfps.length === 0 && !loading) ? (
-        <Card className="border-dashed border-2 flex flex-col items-center justify-center p-12 text-center bg-muted/5">
-          <div className="bg-primary/10 p-4 rounded-full mb-4">
-            <FileText className="h-8 w-8 text-primary" />
-          </div>
-          <h3 className="text-xl font-semibold">No RFPs found</h3>
-          <p className="text-muted-foreground mt-2 mb-6 max-w-sm">
-            You haven't created any Request for Proposals yet. Start by creating your first one.
-          </p>
-          <Link to="/">
-            <Button variant="outline">Create your first RFP</Button>
-          </Link>
-        </Card>
-      ) : (
+  const renderRfpList = () => {
+      if (loading) {
+        return (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-48 rounded-lg bg-muted animate-pulse" />
+              ))}
+            </div>
+        )
+      }
+
+      if (rfps.length === 0) {
+        return (
+            <Card className="border-dashed border-2 flex flex-col items-center justify-center p-12 text-center bg-muted/5">
+                <div className="bg-primary/10 p-4 rounded-full mb-4">
+                    <FileText className="h-8 w-8 text-primary" />
+                </div>
+                <h3 className="text-xl font-semibold">No {status === 'Pending' ? 'Active' : 'Closed'} RFPs found</h3>
+                <p className="text-muted-foreground mt-2 mb-6 max-w-sm">
+                    {status === 'Pending'
+                        ? "You don't have any active Request for Proposals."
+                        : "You don't have any closed Request for Proposals yet."}
+                </p>
+                {status === 'Pending' && (
+                    <Link to="/">
+                        <Button variant="outline">Create your first RFP</Button>
+                    </Link>
+                )}
+            </Card>
+        )
+      }
+
+      return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {rfps.map((rfp) => (
             <Card key={rfp.id} className="flex flex-col hover:shadow-md transition-shadow">
@@ -71,7 +86,9 @@ export default function RfpList() {
                   <CardTitle className="text-xl line-clamp-1">
                     {rfp.title || 'Untitled RFP'}
                   </CardTitle>
-                  <Badge variant="secondary">Active</Badge>
+                  <Badge variant={rfp.status === 'Closed' ? "secondary" : "default"}>
+                    {rfp.status || status}
+                  </Badge>
                 </div>
                 <CardDescription className="line-clamp-2 min-h-[2.5rem]">
                   {rfp.description}
@@ -100,7 +117,36 @@ export default function RfpList() {
             </Card>
           ))}
         </div>
-      )}
+      );
+  }
+
+
+  return (
+    <div className="space-y-6 max-w-6xl mx-auto">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">All RFPs</h1>
+          <p className="text-muted-foreground mt-1">Manage and track your request for proposals.</p>
+        </div>
+        <Link to="/">
+          <Button className="gap-2">
+            <Plus className="h-4 w-4" /> Create New RFP
+          </Button>
+        </Link>
+      </div>
+
+      <Tabs defaultValue="Pending" onValueChange={setStatus} className="w-full">
+          <TabsList>
+            <TabsTrigger value="Pending">Active</TabsTrigger>
+            <TabsTrigger value="Closed">Closed</TabsTrigger>
+          </TabsList>
+          <TabsContent value="Pending" className="mt-6">
+            {renderRfpList()}
+          </TabsContent>
+          <TabsContent value="Closed" className="mt-6">
+            {renderRfpList()}
+          </TabsContent>
+      </Tabs>
     </div>
   );
 }
