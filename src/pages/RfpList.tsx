@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import axiosInstance from '@/lib/axios';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -6,32 +6,21 @@ import { Button } from '@/components/ui/button';
 import { FileText, Calendar, DollarSign, ArrowRight, Plus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useApi } from '@/hooks/useApi';
 
 export default function RfpList() {
-  const [rfps, setRfps] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
   const [status, setStatus] = useState('Pending');
-  const fetchRef = useRef(false)
+
+  const fetchRfpsApi = useCallback(async (currentStatus: string) => {
+    const res = await axiosInstance.get(`/rfp/rfps?status=${currentStatus}`);
+    return res.data;
+  }, []);
+
+  const { data: rfps, loading, error, execute: fetchRfps } = useApi(fetchRfpsApi);
 
   useEffect(() => {
-    const fetchRfps = async () => {
-      if(fetchRef.current) return
-      setLoading(true);
-      try {
-        fetchRef.current = true
-        const res = await axiosInstance.get(`/rfp/rfps?status=${status}`);
-        setRfps(res.data);
-      } catch (error) {
-        console.error(error);
-        setError(true)
-      } finally {
-        setLoading(false);
-        fetchRef.current = false
-      }
-    };
-    fetchRfps();
-  }, [status]);
+    fetchRfps(status);
+  }, [status, fetchRfps]);
 
 
   if(error) {
@@ -56,7 +45,7 @@ export default function RfpList() {
         )
       }
 
-      if (rfps.length === 0) {
+      if (!rfps || rfps.length === 0) {
         return (
             <Card className="border-dashed border-2 flex flex-col items-center justify-center p-12 text-center bg-muted/5">
                 <div className="bg-primary/10 p-4 rounded-full mb-4">
@@ -79,7 +68,7 @@ export default function RfpList() {
 
       return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {rfps.map((rfp) => (
+          {rfps.map((rfp: any) => (
             <Card key={rfp.id} className="flex flex-col hover:shadow-md transition-shadow">
               <CardHeader className="pb-4">
                 <div className="flex justify-between items-start gap-2">

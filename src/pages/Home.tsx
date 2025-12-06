@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import axiosInstance from '@/lib/axios';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,23 +9,42 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, Save, Send, Plus, Trash2, FileText, DollarSign, Calendar, CreditCard, ShieldCheck } from 'lucide-react';
+import { Sparkles, Save, Send, Plus, Trash2, FileText, DollarSign, Calendar, CreditCard, ShieldCheck, Loader2 } from 'lucide-react';
 import { RfpChatModal } from '@/components/RfpChatModal';
+import { useApi } from '@/hooks/useApi';
 
 export default function Home() {
   const navigate = useNavigate();
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [generatedRfp, setGeneratedRfp] = useState<any>(null);
-  const [vendors, setVendors] = useState<any[]>([]);
   const [selectedVendors, setSelectedVendors] = useState<string[]>([]);
   const [isVendorModalOpen, setIsVendorModalOpen] = useState(false);
 
   // Warranty composite state
   const [warrantyYears, setWarrantyYears] = useState(0);
   const [warrantyMonths, setWarrantyMonths] = useState(0);
-
-  // Date state for delivery
   const [deliveryDate, setDeliveryDate] = useState<string>('');
+
+  // API Callbacks
+  const saveRfpApi = useCallback(async (rfpData: any) => {
+    const res = await axiosInstance.post('/rfp/rfps', rfpData);
+    return res.data;
+  }, []);
+
+  const fetchVendorsApi = useCallback(async () => {
+    const res = await axiosInstance.get('/vendor/vendors');
+    return res.data;
+  }, []);
+
+  const sendRfpApi = useCallback(async (data: { rfpId: string, vendorIds: string[] }) => {
+    await axiosInstance.post(`/rfp/rfps/${data.rfpId}/send`, { vendorIds: data.vendorIds });
+  }, []);
+
+  // Hooks
+  const { loading: saving, execute: saveRfp } = useApi(saveRfpApi);
+  const { data: vendors, loading: vendorsLoading, execute: fetchVendors } = useApi(fetchVendorsApi);
+  const { loading: sending, execute: sendRfp } = useApi(sendRfpApi);
+
 
   const handleRfpGenerated = (data: any) => {
     setGeneratedRfp(data);
@@ -67,35 +86,29 @@ export default function Home() {
   const handleSave = async () => {
     if (!generatedRfp) return;
 
-    // Strict Validation
     if (!generatedRfp.title || !generatedRfp.items?.length || !generatedRfp.paymentTerms || !generatedRfp.warranty || !generatedRfp.deliveryDays) {
         alert("Please fill in all mandatory fields (Title, Items, Payment Terms, Warranty, Delivery Date).");
         return;
     }
 
     try {
-      const res = await axiosInstance.post('/rfp/rfps', generatedRfp);
+      const savedRfp = await saveRfp(generatedRfp);
       alert('RFP Saved!');
-      setGeneratedRfp(res.data);
+      setGeneratedRfp(savedRfp);
     } catch (error) {
       console.error(error);
       alert('Failed to save RFP');
     }
   };
 
-  const fetchVendors = async () => {
-    try {
-      const res = await axiosInstance.get('/vendor/vendors');
-      setVendors(res.data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
+  const handleOpenVendorModal = () => {
+      fetchVendors();
+      setIsVendorModalOpen(true);
+  }
 
   const handleSend = async () => {
     if (!generatedRfp) return;
 
-    // Strict Validation
     if (!generatedRfp.title || !generatedRfp.items?.length || !generatedRfp.paymentTerms || !generatedRfp.warranty || !generatedRfp.deliveryDays) {
         alert("Please fill in all mandatory fields before sending.");
         return;
@@ -105,9 +118,9 @@ export default function Home() {
 
     if (!rfpId) {
       try {
-        const res = await axiosInstance.post('/rfp/rfps', generatedRfp);
-        rfpId = res.data.id;
-        setGeneratedRfp(res.data);
+        const savedRfp = await saveRfp(generatedRfp);
+        rfpId = savedRfp.id;
+        setGeneratedRfp(savedRfp);
       } catch (error) {
         console.error(error);
         alert('Failed to auto-save RFP. Please try again.');
@@ -116,7 +129,7 @@ export default function Home() {
     }
 
     try {
-      await axiosInstance.post(`/rfp/rfps/${rfpId}/send`, { vendorIds: selectedVendors });
+      await sendRfp({ rfpId, vendorIds: selectedVendors });
       alert('RFP sent to vendors!');
       setIsVendorModalOpen(false);
       navigate('/rfps');
@@ -188,14 +201,14 @@ export default function Home() {
                   <CardDescription>Review the AI-generated details before saving.</CardDescription>
                 </div>
                 <div className="flex gap-3">
-                  <Button onClick={handleSave} variant="outline" className="gap-2">
-                    <Save className="h-4 w-4" />
+                  <Button onClick={handleSave} variant="outline" className="gap-2" disabled={saving}>
+                    {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                     {generatedRfp.id ? 'Update' : 'Save Draft'}
                   </Button>
 
                   <Dialog open={isVendorModalOpen} onOpenChange={setIsVendorModalOpen}>
                     <DialogTrigger asChild>
-                      <Button onClick={fetchVendors} variant="default" className="gap-2">
+                      <Button onClick={handleOpenVendorModal} variant="default" className="gap-2">
                         <Send className="h-4 w-4" />
                         Send to Vendors
                       </Button>
@@ -205,10 +218,14 @@ export default function Home() {
                         <DialogTitle>Select Vendors</DialogTitle>
                       </DialogHeader>
                       <div className="py-4 space-y-4 max-h-[60vh] overflow-y-auto">
-                        {vendors.length === 0 ? (
+                        {vendorsLoading ? (
+                            <div className="flex items-center justify-center py-8">
+                                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                            </div>
+                        ) : !vendors || vendors.length === 0 ? (
                           <p className="text-center text-muted-foreground py-8">No vendors found.</p>
                         ) : (
-                          vendors.map((vendor) => (
+                          vendors.map((vendor: any) => (
                             <div key={vendor.id} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-muted/50 transition-colors border border-transparent hover:border-border">
                               <Checkbox
                                 id={vendor.id}
@@ -226,8 +243,15 @@ export default function Home() {
                           ))
                         )}
                       </div>
-                      <Button onClick={handleSend} disabled={selectedVendors.length === 0} className="w-full">
-                        Send Emails ({selectedVendors.length})
+                      <Button onClick={handleSend} disabled={selectedVendors.length === 0 || sending || saving} className="w-full">
+                        {sending || saving ? (
+                            <>
+                                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                Processing...
+                            </>
+                        ) : (
+                            `Send Emails (${selectedVendors.length})`
+                        )}
                       </Button>
                     </DialogContent>
                   </Dialog>

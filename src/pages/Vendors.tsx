@@ -1,42 +1,40 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import axiosInstance from '@/lib/axios';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Users, Mail, Tag, Search } from 'lucide-react';
+import { Plus, Users, Mail, Tag, Search, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { useApi } from '@/hooks/useApi';
 
 export default function Vendors() {
-  const [vendors, setVendors] = useState<any[]>([]);
   const [newVendor, setNewVendor] = useState({ name: '', email: '', category: '' });
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(true);
-  const fetchRef = useRef(false)
+
+  // API Callbacks
+  const fetchVendorsApi = useCallback(async () => {
+    const res = await axiosInstance.get('/vendor/vendors');
+    return res.data;
+  }, []);
+
+  const createVendorApi = useCallback(async (vendorData: typeof newVendor) => {
+    await axiosInstance.post('/vendor/vendors', vendorData);
+  }, []);
+
+  // Hooks
+  const { data: vendors, loading, execute: fetchVendors } = useApi(fetchVendorsApi);
+  const { loading: creating, execute: createVendor } = useApi(createVendorApi);
 
   useEffect(() => {
     fetchVendors();
-  }, []);
-
-  const fetchVendors = async () => {
-    if(fetchRef.current) return
-    try {
-      fetchRef.current = true
-      const res = await axiosInstance.get('/vendor/vendors');
-      setVendors(res.data);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-      fetchRef.current = false
-    }
-  };
+  }, [fetchVendors]);
 
   const handleCreate = async () => {
     try {
-      await axiosInstance.post('/vendor/vendors', newVendor);
+      await createVendor(newVendor);
       setIsOpen(false);
       setNewVendor({ name: '', email: '', category: '' });
       fetchVendors();
@@ -46,11 +44,11 @@ export default function Vendors() {
     }
   };
 
-  const filteredVendors = vendors.filter(v =>
+  const filteredVendors = vendors?.filter((v: any) =>
     v.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     v.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     v.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  ) || [];
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
@@ -61,7 +59,7 @@ export default function Vendors() {
         </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
-            <Button className="gap-2">
+            <Button className="gap-2 bg-primary hover:bg-primary/90">
               <Plus className="h-4 w-4" /> Add Vendor
             </Button>
           </DialogTrigger>
@@ -97,7 +95,10 @@ export default function Vendors() {
                   placeholder="Hardware, Software, Services..."
                 />
               </div>
-              <Button onClick={handleCreate} className="w-full mt-2">Save Vendor</Button>
+              <Button onClick={handleCreate} className="w-full mt-2" disabled={creating}>
+                  {creating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                  Save Vendor
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -115,8 +116,8 @@ export default function Vendors() {
 
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-40 rounded-lg bg-muted animate-pulse" />
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="h-40 rounded-lg bg-muted/20 animate-pulse border border-muted" />
           ))}
         </div>
       ) : (filteredVendors.length === 0 && !loading) ? (
@@ -134,12 +135,12 @@ export default function Vendors() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredVendors.map((vendor) => (
-            <Card key={vendor.id} className="hover:shadow-md transition-shadow">
+          {filteredVendors.map((vendor: any) => (
+            <Card key={vendor.id} className="hover:shadow-md transition-shadow group">
               <CardHeader className="pb-3">
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                       {vendor.name.charAt(0).toUpperCase()}
                     </div>
                     <div>
@@ -153,7 +154,7 @@ export default function Vendors() {
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2 mt-2">
-                  <Badge variant="secondary">
+                  <Badge variant="secondary" className="group-hover:bg-secondary/80">
                     <Tag className="h-3 w-3 mr-1" />
                     {vendor.category}
                   </Badge>
