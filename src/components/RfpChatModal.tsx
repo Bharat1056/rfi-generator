@@ -79,6 +79,8 @@ export function RfpChatModal({ isOpen, onClose, onGenerate }: RfpChatModalProps)
     setInput('');
     setSuggestions([]);
 
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
     try {
       const result = await sendMessage({
         history: [...messages, userMsg],
